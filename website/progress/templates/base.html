@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}InProgress{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+          integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf"
+          crossorigin="anonymous">
+    <link href="{% static "custom.css" %}" rel="stylesheet">
+</head>
+<body class="bg-dark">
+
+{% block menu %}
+    {% include "menu.html" %}
+{% endblock %}
+<div class="container bg-body">
+    <div class="row">
+        {% comment %}
+            <aside class="col-lg-3 bg-light shadow-sm">
+                {% block sidebar %}
+                {% endblock %}
+            </aside>
+        {% endcomment %}
+        <div class="col p-3">
+            {% if messages %}
+                <ul class="alerts mb-0 list-unstyled">
+                    {% for message in messages %}
+                        <li class="alert fade show alert-dismissible{% if message.tags %} {{ message.tags }}{% endif %}"
+                            role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% block body %}
+                <h1>Welcome to ProgressWeb</h1>
+                <p>Progress web provides an easy way to monitor the progress of your long running programs from anywhere.</p>
+                <p>Using a simple to use library and intuitive dashboard, you can see exactly how much progress your
+                    project has made without having to log in through cumbersome remote tools like SSH,
+                    while also avoiding the risk of accidentally closing your running application.</p>
+            {% endblock %}
+        </div>
+    </div>
+</div>
+
+{% block jquery %}{% endblock %}
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+        integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+{% block scripts %}
+{% endblock %}
+
+</body>
+</html>

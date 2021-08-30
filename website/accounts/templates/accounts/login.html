@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load crispy_forms_filters %}
+{% block body %}
+    <h1>Login</h1>
+    <div class="card my-3">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="d-grid gap-2 col-6 mx-auto">
+                    <button class="btn btn-lg btn-block btn-primary" type="submit">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <p class="card-text">
+        Forgotten your password?
+        <a href="{% url "accounts:password_reset" %}">Request a password reset</a>.
+    </p>
+    <p class="card-text">
+        If you don't already have an account, please instead <a href="{% url "accounts:signup" %}">sign up</a> for a new one.
+    </p>
+{% endblock %}

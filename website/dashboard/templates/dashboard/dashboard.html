@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+    <div class="d-grid gap-2 col-6 mx-auto">
+        <a href="{% url "dashboard:create_project" %}" class="btn btn-block btn-primary" type="submit">Create new project</a>
+    </div>
+    {% for project in project_list %}
+        <div class="card mt-3">
+            <h1 class="card-header">{{ project.name }}</h1>
+            <div class="card-body" id="project-{{ project.id }}">
+                {% for run in project.run_set.all %}
+                    <div class="card">
+                        <div class="card-body" id="run-{{ run.id }}">
+                            {% for bar in run.bar_set.all %}
+                                <div class="row">
+                                    <p class="col-2 mb-0">{{ bar.name }}</p>
+                                    <div class="col">
+                                        <div class="progress">
+                                            <div id="bar-{{ bar.id }}"
+                                                 class="progress-bar{% if bar.complete %} bg-success{% elif bar.errored %} bg-danger{% endif %}"
+                                                 role="progressbar" style="width: {{ bar.percent }}%;"
+                                                 aria-valuenow="{{ bar.current }}" aria-valuemin="0"
+                                                 aria-valuemax="{{ bar.maxval }}">
+                                                {{ bar.percent }}%
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <p class="card-text text-muted empty-run">Bars will appear here.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="card empty-projects">
+                        <div class="card-body">
+                            <p class="card-text text-muted">Start the application to see the progress here.</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="card-footer">
+                <button class="btn btn-outline-danger"
+                        title="Clear All Runs" data-bs-toggle="modal" data-bs-target="#delete-modal"
+                        data-bs-projectid="{{ project.id }}" data-bs-projectname="{{ project.name }}"><i
+                  class="fas fa-trash-alt"></i><span class="sr-only">Clear All Runs</span></button>
+                <button class="btn btn-outline-dark"
+                        title="API Key" data-bs-toggle="modal" data-bs-target="#key-modal"
+                        data-bs-projectkey="{{ project.apikey }}" data-bs-projectname="{{ project.name }}"><i
+                  class="fas fa-key"></i><span class="sr-only">Api Key</span></button>
+            </div>
+        </div>
+    {% endfor %}
+
+    <div class="modal fade" id="delete-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Clear All Runs</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>This will clear all runs in the project <span id="clearname"></span>. This cannot be undone.</p>
+                    <form action="{% url "dashboard:delete_runs" %}" method="post">
+                        {% csrf_token %}
+                        <input id="clearid" name="id" value="" type="hidden">
+                        <button type="submit" class="btn btn-danger w-100">Clear Runs</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="key-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Project Key</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Use this key to link your application to project <span id="key-name"></span>. Don't share this
+                        key or include it in publicly visible places such as source control.</p>
+                    <code id="key-box" class="bg-light" onclick="selectText(this);"></code>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        ts = "{{ ts }}"
+        var deleteModal = document.getElementById('delete-modal')
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget
+            var pid = button.getAttribute('data-bs-projectid')
+            var pname = button.getAttribute('data-bs-projectname')
+
+            var modalTitle = deleteModal.querySelector('#clearname')
+            var modalBodyInput = deleteModal.querySelector('#clearid')
+
+            modalTitle.textContent = pname
+            modalBodyInput.value = pid
+        });
+        var keyModal = document.getElementById('key-modal')
+        keyModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget
+            var pkey = button.getAttribute('data-bs-projectkey')
+            var pname = button.getAttribute('data-bs-projectname')
+
+            var modalTitle = keyModal.querySelector('#key-name')
+            var modalBodyInput = keyModal.querySelector('#key-box')
+
+            modalTitle.textContent = pname
+            modalBodyInput.textContent = pkey
+        });
+
+        function selectText(node) {
+            if (document.body.createTextRange) {
+                const range = document.body.createTextRange();
+                range.moveToElementText(node);
+                range.select();
+            } else if (window.getSelection) {
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.selectNodeContents(node);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            } else {
+                console.warn("Could not select text in node: Unsupported browser.");
+            }
+        }
+
+    </script>
+    <script src="{% static "poll.min.js" %}"></script>
+{% endblock %}
