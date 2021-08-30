@@ -4,7 +4,7 @@ from collections import defaultdict
 
 import requests
 
-DEFAULT_URL = "http://127.0.0.1:8000"
+DEFAULT_URL = "https://netprogress.thomasbruce.co.uk"
 
 
 class ProgressUpdater:
