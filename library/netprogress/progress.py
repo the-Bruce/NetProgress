@@ -6,7 +6,7 @@ import requests
 
 from netprogress.endpoint import Http
 
-DEFAULT_URL = "http://127.0.0.1:8000"
+DEFAULT_URL = "https://netprogress.thomasbruce.co.uk"
 
 
 class ProgressUpdater:
