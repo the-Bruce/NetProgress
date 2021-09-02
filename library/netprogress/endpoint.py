@@ -8,7 +8,6 @@ class Endpoint:
     name = ""
 
     def __init__(self, response):
-        print(response)
         if self.name not in response['endpoints']:
             raise ValueError()
         self.url = response['endpoints'][self.name]
