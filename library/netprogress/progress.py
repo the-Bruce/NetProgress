@@ -32,7 +32,10 @@ class ProgressUpdater:
                     pass
                 else:
                     break
+            if self.endpoint is None:
+                raise RuntimeError("Unable to initiate session with requested Endpoints")
         else:
+            print(response)
             raise RuntimeError("Unable to initiate session")
 
     def bar(self, maximum=100, name="Main"):
@@ -145,6 +148,13 @@ class IterableWrapper:
             raise e
         finally:
             self.bar.finish()
+
+    def __enter__(self):
+        self.bar.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return self.bar.__exit__(exc_type, exc_val, exc_tb)
 
     def close(self):
         self.bar.finish()
