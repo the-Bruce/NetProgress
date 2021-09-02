@@ -103,7 +103,7 @@ class Init(View):
             return JsonResponse({'error': "Invalid API Key"}, status=400)
         run = Run.objects.create(project=project)
         endpoints = {
-            'http': settings.PRIMARY_HOST+reverse("dashboard:update")
+            'http': settings.DEFAULT_SCHEME+"://"+settings.PRIMARY_HOST+reverse("dashboard:update")
         }
         endpoints.update(settings.ALT_ENDPOINTS)
         return JsonResponse({'key': run.apikey, 'endpoints': endpoints})
