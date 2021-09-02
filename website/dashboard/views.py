@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages import add_message
 from django.contrib.messages import constants as message
@@ -14,6 +15,7 @@ from django.views.generic import ListView, CreateView
 
 # Create your views here.
 from dashboard.models import Project, Bar, Run
+from dashboard.utils import update_bar
 from progress.utils import JsonView
 
 
@@ -95,9 +97,16 @@ class Init(View):
     def post(self, request):
         if 'key' not in request.POST:
             return JsonResponse({'error': "Missing API Key"}, status=400)
-        project = Project.objects.get(apikey=request.POST['key'])
+        try:
+            project = Project.objects.get(apikey=request.POST['key'])
+        except Project.DoesNotExist:
+            return JsonResponse({'error': "Invalid API Key"}, status=400)
         run = Run.objects.create(project=project)
-        return JsonResponse({'key': run.apikey})
+        endpoints = {
+            'http': settings.PRIMARY_HOST+reverse("dashboard:update")
+        }
+        endpoints.update(settings.ALT_ENDPOINTS)
+        return JsonResponse({'key': run.apikey, 'endpoints': endpoints})
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -114,22 +123,8 @@ class Update(View):
             return JsonResponse({'error': "Malformed Request"}, status=400)
 
         try:
-            run = Run.objects.get(apikey=request.POST['key'])
-        except Run.DoesNotExist:
-            return JsonResponse({'error': "Invalid API Key"}, status=400)
-
-        bars = run.bar_set.all()
-        for k, i in updates.items():
-            bar, new = bars.get_or_create(name=k, defaults={'maxval': 100, 'current': 0, 'run_id': run.id})
-            if 'max' in i:
-                bar.maxval = int(i['max'])
-            if 'done' in i:
-                bar.complete = bool(i['done'])
-            if 'error' in i:
-                bar.errored = bool(i['error'])
-            if 'val' in i:
-                bar.current = int(i['val'])
-            print(i, bar)
-            bar.save()
+            update_bar(key=request.POST['key'], data=updates)
+        except ValueError as e:
+            return JsonResponse({'error': str(e)}, status=400)
 
         return HttpResponse(status=204)

@@ -4,26 +4,34 @@ from collections import defaultdict
 
 import requests
 
-DEFAULT_URL = "https://netprogress.thomasbruce.co.uk"
+from netprogress.endpoint import Http
+
+DEFAULT_URL = "http://127.0.0.1:8000"
 
 
 class ProgressUpdater:
-    def __init__(self, key, url=DEFAULT_URL, frequency=1):
+    def __init__(self, key, url=DEFAULT_URL, frequency=1, endpoints = (Http,)):
         if url[-1] == "/":
             url = url[:-1]
         self.key = key
         self.url = url
-        self.session_key = None
         self.names = set()
         self.awaiting_update = defaultdict(dict)
         self.frequency = frequency
         self.updated = time.monotonic()
-        self.init()
+        self.endpoint = None
+        self.init(endpoints)
 
-    def init(self):
+    def init(self, endpoints):
         response = requests.post(self.url + "/api/init/", data={"key": self.key})
         if response.ok:
-            self.session_key = response.json()['key']
+            for i in endpoints:
+                try:
+                    self.endpoint = i(response.json())
+                except ValueError:
+                    pass
+                else:
+                    break
         else:
             raise RuntimeError("Unable to initiate session")
 
@@ -45,10 +53,12 @@ class ProgressUpdater:
         self._report()
 
     def __enter__(self):
+        self.endpoint.enter()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.flush()
+        self.endpoint.exit()
         return False
 
     def __call__(self, iterable, maximum=None, **kwargs):
@@ -76,14 +86,8 @@ class ProgressUpdater:
         self._report()
 
     def _report(self):
-        if self.session_key is None:
-            self.init()
         if time.monotonic() >= self.updated + self.frequency:
-            data = {
-                "key": self.session_key,
-                "updates": json.dumps(self.awaiting_update)
-            }
-            requests.post(self.url + "/api/update/", data=data)
+            self.endpoint.update(self.awaiting_update)
             self.awaiting_update.clear()
             self.updated = time.monotonic()
 

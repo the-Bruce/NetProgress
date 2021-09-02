@@ -151,6 +151,8 @@ MESSAGE_TAGS = {
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'website@thomasbruce.co.uk'
 
+ALT_ENDPOINTS = {}
+
 try:
     from .local_config import *
 except ImportError:
