@@ -10,6 +10,6 @@ urlpatterns = [
     path("new_project/", views.CreateProject.as_view(), name='create_project'),
     path("api/status/", views.Status.as_view(), name='status'),
     path("api/update/", views.Update.as_view(), name='update'),
-    path("api/init/", views.Init.as_view(), name='update'),
+    path("api/init/", views.Init.as_view(), name='init'),
 
 ]
