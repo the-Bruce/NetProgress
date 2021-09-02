@@ -46,7 +46,7 @@ class ProgressUpdater:
                 raise ValueError("Multiple identically named bars. Please ensure that each bar is distinct")
         if maximum <= 0 or int(maximum) != maximum:
             raise ValueError("Maximum should be a positive integer")
-        self.names.update(name)
+        self.names.add(name)
         self.awaiting_update[name]['max'] = maximum
         self.awaiting_update[name]['val'] = 0
         return ProgressBar(name, maximum, self)
